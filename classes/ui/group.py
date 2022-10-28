@@ -1,6 +1,6 @@
 import pygame
 from typing import Tuple, List, Union
-from . import text, inputbox, buttons, statusbar, image,checkbox,slider
+from . import text, inputbox, buttons, statusbar, image,checkbox,slider,dropdown
 
 
 class UIGroup():
@@ -17,6 +17,8 @@ class UIGroup():
         self.button = drag_button
 
         self.visible = True
+        
+        self.was_pressing_outside = False
 
     def show(self):
         self.visible = True
@@ -26,9 +28,9 @@ class UIGroup():
 
     def add(self, *elements):
         for element in elements:
-            if not isinstance(element, (text.UIText, inputbox.UIInputBox, buttons.UIImageButton, buttons.UITextButton, statusbar.UIStatusBar, image.UIImage,checkbox.UICheckBox,slider.UISlider)):
+            if not isinstance(element, (text.UIText, inputbox.UIInputBox, buttons.UIImageButton, buttons.UITextButton, statusbar.UIStatusBar, image.UIImage,checkbox.UICheckBox,slider.UISlider,dropdown.UIDropDown)):
                 raise TypeError(
-                    f"Element can only be of types Text, InputBox, ImageButton, TextButton, StatusBar, Image, CheckBox, Slider.")
+                    f"Element can only be of types Text, InputBox, ImageButton, TextButton, StatusBar, Image, CheckBox, Slider, DropDown.")
             self.elements.append(element)
             element._ui_group_set_offset()
             element._ui_group_on_pos_change(self.position)
@@ -62,18 +64,21 @@ class UIGroup():
         pos = pygame.mouse.get_pos()
         if mouse[self.button]:
             if self.hitbox.collidepoint(pos[0], pos[1]) or self.was_pressing:
-                if not self.was_pressing:
-                    self.was_pressing = True
-                    self.drag_rel_pos.xy = (
-                        pos[0]-self.position.x, pos[1]-self.position.y)
-                else:
-                    self.position.xy = (
-                        pos[0]-self.drag_rel_pos.x, pos[1]-self.drag_rel_pos[1])
-                    self.hitbox.topleft = self.position.xy
-                    self.update_elements_pos()
-                    if self.on_drag:
-                        self.on_drag()
+                if not self.was_pressing_outside:
+                    if not self.was_pressing:
+                        self.was_pressing = True
+                        self.drag_rel_pos.xy = (
+                            pos[0]-self.position.x, pos[1]-self.position.y)
+                    else:
+                        self.position.xy = (
+                            pos[0]-self.drag_rel_pos.x, pos[1]-self.drag_rel_pos[1])
+                        self.hitbox.topleft = self.position.xy
+                        self.update_elements_pos()
+                        if self.on_drag:
+                            self.on_drag()
             else:
                 self.was_pressing = False
+                self.was_pressing_outside = True
         if not mouse[self.button]:
             self.was_pressing = False
+            self.was_pressing_outside = False

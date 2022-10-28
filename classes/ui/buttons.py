@@ -24,6 +24,8 @@ class UIImageButton():
         self.ui_group_offset = pygame.Vector2()
 
         self.visible = True
+        
+        self.was_clicking_outside = False
 
     def show(self):
         self.visible = True
@@ -59,22 +61,28 @@ class UIImageButton():
         Check if the button is got clicked or is being clicked. If a function is passed in the init, it will be called.
         """
         action = False
+        if self.visible:
+            self.hitbox.center = self.rect.center
 
-        self.hitbox.center = self.rect.center
+            pos = pygame.mouse.get_pos()
+            mouse = pygame.mouse.get_pressed()
 
-        pos = pygame.mouse.get_pos()
-        mouse = pygame.mouse.get_pressed()
+            if self.hitbox.collidepoint(pos):
+                if mouse[self.on_click_button]:
+                    if (self.clicked == False or self.allow_hold == True) and not self.was_clicking_outside:
+                        action = True
+                        self.clicked = True
+                        if self.on_click_function:
+                            self.on_click_function()
 
-        if self.hitbox.collidepoint(pos):
-            if mouse[self.on_click_button]:
-                if self.clicked == False or self.allow_hold == True:
-                    action = True
-                    self.clicked = True
-                    if self.on_click_function:
-                        self.on_click_function()
-
-            if not mouse[self.on_click_button]:
-                self.clicked = False
+                if not mouse[self.on_click_button]:
+                    self.clicked = False
+                    self.was_clicking_outside = False
+            else:
+                if mouse[self.on_click_button]:
+                    self.was_clicking_outside = True
+                if not mouse[self.on_click_button]:
+                    self.was_clicking_outside = False
 
         return action
 
@@ -104,6 +112,8 @@ class UITextButton():
         self.ui_group_offset = pygame.Vector2()
 
         self.visible = True
+        
+        self.was_clicking_outside = False
 
     def show(self):
         self.visible = True
@@ -129,22 +139,28 @@ class UITextButton():
         Check if the button is got clicked or is being clicked. If a function is passed in the init, it will be called.
         """
         action = False
+        if self.visible:
+            self.hitbox.center = self.text.rect.center
 
-        self.hitbox.center = self.text.rect.center
+            pos = pygame.mouse.get_pos()
+            mouse = pygame.mouse.get_pressed()
 
-        pos = pygame.mouse.get_pos()
-        mouse = pygame.mouse.get_pressed()
+            if self.hitbox.collidepoint(pos):
+                if mouse[self.on_click_button]:
+                    if (self.clicked == False or self.allow_hold == True) and not self.was_clicking_outside:
+                        action = True
+                        self.clicked = True
+                        if self.on_click_function:
+                            self.on_click_function()
 
-        if self.hitbox.collidepoint(pos):
-            if mouse[self.on_click_button]:
-                if self.clicked == False or self.allow_hold == True:
-                    action = True
-                    self.clicked = True
-                    if self.on_click_function:
-                        self.on_click_function()
-
-            if not mouse[self.on_click_button]:
-                self.clicked = False
+                if not mouse[self.on_click_button]:
+                    self.clicked = False
+                    self.was_clicking_outside = False
+            else:
+                if mouse[self.on_click_button]:
+                    self.was_clicking_outside = True
+                if not mouse[self.on_click_button]:
+                    self.was_clicking_outside = False
 
         return action
 

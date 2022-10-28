@@ -2,7 +2,7 @@ import pygame
 from .image import UIImage
 
 class UICheckBox:
-    def __init__(self,topleft_pos,size,checkbox_on_image,on_toggle_change_func=None,start_on=False,bg_color=(50,50,50),outline_color=(20,20,20),click_button=0):
+    def __init__(self,topleft_pos,size,checkbox_on_image,on_toggle_change_func=None,start_on=False,bg_color=(60,60,60),outline_color=(20,20,20),click_button=0):
         self.size = size
         self.bg_color = bg_color
         self.outline_color = outline_color
@@ -21,6 +21,8 @@ class UICheckBox:
         
         self.clicked = False
         
+        self.was_clicking_outside = False
+        
     def draw(self,surface):
         if self.visible:
             self.bg_image.draw(surface)
@@ -28,19 +30,26 @@ class UICheckBox:
                 surface.blit(self.on_image,self.on_image_rect)
         
     def update(self):
-        pos = pygame.mouse.get_pos()
-        mouse = pygame.mouse.get_pressed()
+        if self.visible:
+            pos = pygame.mouse.get_pos()
+            mouse = pygame.mouse.get_pressed()
 
-        if self.bg_image.rect.collidepoint(pos):
-            if mouse[self.button]:
-                if self.clicked == False:
-                    self.is_on = not self.is_on
-                    self.clicked = True
-                    if self.on_toggle:
-                        self.on_toggle()
+            if self.bg_image.rect.collidepoint(pos):
+                if mouse[self.button]:
+                    if self.clicked == False and not self.was_clicking_outside:
+                        self.is_on = not self.is_on
+                        self.clicked = True
+                        if self.on_toggle:
+                            self.on_toggle()
 
-            if not mouse[self.button]:
-                self.clicked = False
+                if not mouse[self.button]:
+                    self.clicked = False
+                    self.was_clicking_outside = False
+            else:
+                if mouse[self.button]:
+                    self.was_clicking_outside = True
+                if not mouse[self.button]:
+                    self.was_clicking_outside = False
         
     def show(self):
         self.visible = True

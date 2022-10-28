@@ -1,9 +1,13 @@
 import pygame
 from .text import UIText
 
+class StatusBarModes:
+    current_over_max = "current_over_max"
+    current = "current"
+    percentage = "percentage"
 
 class UIStatusBar():
-    def __init__(self, topleft_pos, width, height, max_value, start_value, sprite_to_follow=None, offset_from_sprite=(0, 0), bg_color="black", fill_color="red", outline_color=None, outline_size=2, label: UIText = None, label_offset_from_topleft=(0, 0), border_radius=-1):
+    def __init__(self, topleft_pos, width, height, max_value, start_value, sprite_to_follow=None, offset_from_sprite=(0, 0), bg_color=(60,60,60), fill_color="red", outline_color=(20,20,20), outline_size=2, label: UIText = None, label_offset_from_topleft=(0, 0), border_radius=-1):
         self.width = width
         self.height = height
         self.max_value = max_value
@@ -84,16 +88,16 @@ class UIStatusBar():
         if not _internal:
             self.ui_group_offset.xy = self.bg_rect.topleft
 
-    def update_label_text(self, mode="current_over_max", custom_text="", available_modes_are="current_over_max,current,percentage", float_rounding=1):
+    def update_label_text(self, mode=StatusBarModes.current_over_max, custom_text="", float_rounding=1):
         if custom_text:
             self.label.text = custom_text
             return
-        if mode == "current_over_max":
+        if mode == StatusBarModes.current_over_max:
             self.label.text = str(round(self.current_value, float_rounding)) + \
                 "/"+str(round(self.max_value, float_rounding))
-        elif mode == "current":
+        elif mode == StatusBarModes.current:
             self.label.text = str(round(self.current_value, float_rounding))
-        elif mode == "percentage":
+        elif mode == StatusBarModes.percentage:
             self.label.text = str(
                 round(self.get_value_percentage(), float_rounding))+"%"
 

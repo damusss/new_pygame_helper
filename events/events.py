@@ -19,17 +19,39 @@ MIDDLE_BUTTON = 2
 WHEEL_UP = 4
 WHEEL_DOWN = 5
 
+class EventButtons:
+    left = 1
+    right = 3
+    middle = 3
+    wheel_up = 4
+    wheel_down = 5
+
 RIGHT_CLICK = 2
 MIDDLE_CLICK = 1
 LEFT_CLICK = 0
+
+class Buttons:
+    right = 2
+    middle = 1
+    left = 0
 
 LEFT = -1
 RIGHT = 1
 UP = -1
 DOWN = 1
 
-HORIZONTAL = "h"
-VERTICAL = "v"
+class Directions:
+    left = -1
+    right = 1
+    up = -1
+    down = 1
+
+HORIZONTAL = "horizontal"
+VERTICAL = "vertical"
+
+class AxisDirections:
+    horizontal = "horizontal"
+    vertical = "vertical"
 
 # EVENT
 def quit_event(event:pygame.event.Event,custom_function=None)->None:

@@ -7,6 +7,8 @@ class ClickComponent:
         self.multi_clicks = allow_hold
         self.button = click_button
         self.clicked = False
+        
+        self.was_clicking_outside = False
 
     def update(self) -> bool:
         """
@@ -19,13 +21,19 @@ class ClickComponent:
 
         if self.sprite.hitbox.collidepoint(pos):
             if mouse[self.button]:
-                if self.clicked == False or self.multi_clicks == True:
+                if (self.clicked == False or self.multi_clicks == True) and not self.was_clicking_outside:
                     action = True
                     self.clicked = True
                     self.on_click()
 
             if not mouse[self.button]:
                 self.clicked = False
+                self.was_clicking_outside = False
+        else:
+            if mouse[self.button]:
+                self.was_clicking_outside = True
+            if not mouse[self.button]:
+                self.was_clicking_outside = False
 
         return action
     
@@ -39,26 +47,30 @@ class DragComponent:
         self.drag_rel_pos = pygame.Vector2()
         self.button = drag_button
         self.on_drag = on_drag_func
+        self.was_pressing_outside = False
 
     def update(self):
         mouse = pygame.mouse.get_pressed()
         pos = pygame.mouse.get_pos()
         if mouse[self.button]:
             if self.sprite.hitbox.collidepoint(pos[0], pos[1]) or self.was_pressing:
-                if not self.was_pressing:
-                    self.was_pressing = True
-                    self.drag_rel_pos.xy = (
-                        pos[0]-self.sprite.position.x, pos[1]-self.sprite.position.y)
-                else:
-                    self.sprite.position.xy = (
-                        pos[0]-self.drag_rel_pos.x, pos[1]-self.drag_rel_pos[1])
-                    self.sprite.update_positions()
-                    if self.on_drag:
-                        self.on_drag()
+                if not self.was_pressing_outside:
+                    if not self.was_pressing:
+                        self.was_pressing = True
+                        self.drag_rel_pos.xy = (
+                            pos[0]-self.sprite.position.x, pos[1]-self.sprite.position.y)
+                    else:
+                        self.sprite.position.xy = (
+                            pos[0]-self.drag_rel_pos.x, pos[1]-self.drag_rel_pos[1])
+                        self.sprite.update_positions()
+                        if self.on_drag:
+                            self.on_drag()
             else:
                 self.was_pressing = False
+                self.was_pressing_outside = True
         if not mouse[self.button]:
             self.was_pressing = False
+            self.was_pressing_outside = False
             
     def copy(self):
         return DragComponent(self.sprite,self.on_drag,self.button)

@@ -3,6 +3,7 @@ from typing import Tuple,List,Union
 import sys
 sys.path.append("..")
 from graphics.surface import *
+from events.events import AxisDirections
 
 class Sprite(pygame.sprite.Sprite):
     """
@@ -187,17 +188,17 @@ class Sprite(pygame.sprite.Sprite):
         """
         self.position.xy = self.rect.center
 
-    def update_position(self,direction="horizontal",dt=1):
+    def update_position(self,direction=AxisDirections.horizontal,dt=1):
         """
         Update the position and rectangle position of the sprite using the speed and direction. 
 
         You have to specify if you want to update the horizontal or vertical direction, Otherwise use 'update_positions'.
         """
-        if direction == "horizontal" or direction == "h":
+        if direction == AxisDirections.horizontal:
             self.position.x += self.direction.x*self.speed.x*dt
             self.rect.centerx = round(self.position.x)
             self.hitbox.centerx = self.rect.centerx
-        elif direction =="vertical" or direction == "v":
+        elif direction == AxisDirections.vertical:
             self.position.y += self.direction.y*self.speed.y*dt
             self.rect.centery = round(self.position.y)
             self.hitbox.centery = self.rect.centery
@@ -216,7 +217,7 @@ class Sprite(pygame.sprite.Sprite):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
 
-    def collision(self,collision_group,direction="horizontal",on_collision_func=None):
+    def collision(self,collision_group,direction=AxisDirections.horizontal,on_collision_func=None):
         """
         Check the collisions between itself and a list of sprites. Both needs to have an hitbox.
 
@@ -227,7 +228,7 @@ class Sprite(pygame.sprite.Sprite):
         for sprite in collision_group.sprites():
             if hasattr(sprite, "hitbox"):
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if direction == "horizontal" or direction == "h":
+                    if direction == AxisDirections.horizontal:
                         if self.direction.x > 0 and self.hitbox.left < sprite.hitbox.left:
                             self.hitbox.right = sprite.hitbox.left
                         if self.direction.x < 0 and self.hitbox.right > sprite.hitbox.right:
@@ -235,7 +236,7 @@ class Sprite(pygame.sprite.Sprite):
                         self.rect.centerx = self.hitbox.centerx
                         self.position.x = self.hitbox.centerx
 
-                    if direction == "vertical" or direction == "v":
+                    if direction == AxisDirections.vertical:
                         if self.direction.y > 0 and self.hitbox.top < sprite.hitbox.top:
                             self.hitbox.bottom = sprite.hitbox.top
                         if self.direction.y < 0 and self.hitbox.bottom > sprite.hitbox.bottom:

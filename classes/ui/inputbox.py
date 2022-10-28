@@ -143,8 +143,9 @@ class UIInputBox():
                     pygame.draw.rect(surface, self.color, self.bar_rect)
 
     def update(self):
-        for e in pygame.event.get():
-            self.handle_event(e)
+        if self.visible:
+            for e in pygame.event.get():
+                self.handle_event(e)
 
     def get_text(self) -> str:
         """

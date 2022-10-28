@@ -129,7 +129,13 @@ class UIText():
             self.button.refresh_hitbox()
 
     def _ui_group_on_pos_change(self, group_pos):
-        self.rect.topleft = (group_pos+self.ui_group_offset).xy
+        if self.stick_topleft:
+            self.rect.topleft = (group_pos+self.ui_group_offset).xy
+        else:
+            self.rect.center = (group_pos+self.ui_group_offset).xy
 
     def _ui_group_set_offset(self):
-        self.ui_group_offset.xy = self.rect.topleft
+        if self.stick_topleft:
+            self.ui_group_offset.xy = self.rect.topleft
+        else:
+            self.ui_group_offset.xy = self.rect.center
