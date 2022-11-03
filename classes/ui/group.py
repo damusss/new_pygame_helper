@@ -7,7 +7,7 @@ class UIGroup():
     def __init__(self, position, hitbox_width=None, hitbox_height=None, on_drag_func=None, drag_button=0):
         self.elements = []
         self.position = pygame.Vector2(position)
-        if hitbox_width:
+        if hitbox_width != None:
             self.hitbox = pygame.Rect(
                 self.position.x, self.position.y, hitbox_width, hitbox_height)
         self.was_pressing = False
@@ -19,6 +19,8 @@ class UIGroup():
         self.visible = True
         
         self.was_pressing_outside = False
+        
+        self.ui_group_offset = pygame.Vector2()
 
     def show(self):
         self.visible = True
@@ -28,12 +30,18 @@ class UIGroup():
 
     def add(self, *elements):
         for element in elements:
-            if not isinstance(element, (text.UIText, inputbox.UIInputBox, buttons.UIImageButton, buttons.UITextButton, statusbar.UIStatusBar, image.UIImage,checkbox.UICheckBox,slider.UISlider,dropdown.UIDropDown)):
+            if not isinstance(element, (text.UIText, inputbox.UIInputBox, buttons.UIImageButton, buttons.UITextButton, statusbar.UIStatusBar, image.UIImage,checkbox.UICheckBox,slider.UISlider,dropdown.UIDropDown,UIGroup)):
                 raise TypeError(
-                    f"Element can only be of types Text, InputBox, ImageButton, TextButton, StatusBar, Image, CheckBox, Slider, DropDown.")
+                    f"Element can only be of types Text, InputBox, ImageButton, TextButton, StatusBar, Image, CheckBox, Slider, DropDown, UIGroup.")
             self.elements.append(element)
             element._ui_group_set_offset()
             element._ui_group_on_pos_change(self.position)
+            
+    def _ui_group_set_offset(self):
+        self.ui_group_offset.xy = self.hitbox.topleft
+        
+    def _ui_group_on_pos_change(self,pos):
+        self.set_pos(self.ui_group_offset+pos)
 
     def draw(self, surface):
         if self.visible:

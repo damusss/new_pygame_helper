@@ -139,3 +139,6 @@ class UIText():
             self.ui_group_offset.xy = self.rect.topleft
         else:
             self.ui_group_offset.xy = self.rect.center
+            
+    def copy(self):
+        return UIText(-self.ui_group_offset.xy+self.rect.center,None,self._font,self._text,self._color,self._antialiasing,self._bg_color,self.stick_topleft)

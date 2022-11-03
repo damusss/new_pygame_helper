@@ -1,33 +1,14 @@
+from classes.ui.window_stack import UIWindowStack
 import helper
 
-s,c = helper.init((1920,1080),debug_activated=True)
+s,c = helper.init((1920,1000),debug_activated=True)
 
 bg = helper.Background(helper.load_image("C:\work\images\purplebg.png"),(1920,1080),s)
 
-title = helper.UIText(None,(3,3),helper.SysFont("Segoe UI",15),"Window Title","white")
-window = helper.UIWindow((100,100),1000,700,title)
+sprite = helper.Sprite(helper.empty_image((100,100),"green"),(200,100))
+anim = sprite.add_transform_animation(False,True,helper.transform_animation_schedule_example)
 
-def onclick():
-    window.show()
-    
-def ontoggle():
-    helper.debug.log("toggled")
-    
-def onchange():
-    helper.debug.log(slider.value)
-    
-def onchange2():
-    helper.debug.log(drop.selected_option)
-
-toggle = helper.UIImageButton(helper.empty_image((30,30),"grey"),(20,800-20),on_click_func=onclick)
-
-check = helper.UICheckBox((50,window.offset_height(50)),30,helper.empty_image((20,20),"gray"),ontoggle)
-
-slider = helper.UISlider((50,150),300,20,-50,20,helper.empty_image((30,30),"gray"),helper.SliderDirections.horizontal,onchange)
-
-drop = helper.UIDropDown((50,200),200,40,30,["it was","actually","very simple","thanks to","my awesome ui"],"dropdown working!!",title,onchange2,helper.DropDownDirections.down)
-
-window.add(check,slider,drop)
+anim.play()
 
 while True:
     helper.debug.clear()
@@ -38,10 +19,12 @@ while True:
         
     bg.draw()
     
-    toggle.draw(s)
-    toggle.update()
-    window.draw(s)
-    window.update()
+    if helper.global_input.buttons[0]:
+        anim.restart()
+    
+    sprite.draw(s)
+    sprite.update_positions()
+    sprite.update_transform_animation()
     
     helper.debug.log(round(c.get_fps()))
     helper.debug.draw()

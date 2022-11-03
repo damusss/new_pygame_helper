@@ -33,6 +33,10 @@ from classes.ui.window import *
 from classes.ui.checkbox import *
 from classes.ui.slider import *
 from classes.ui.dropdown import *
+from classes.ui.window_stack import *
+from classes.animations.transform_animation import *
+from classes.animations.animation_step import *
+from classes.animations.animation_action import *
 from debug import _Debug
 
 """

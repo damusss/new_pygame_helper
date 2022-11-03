@@ -31,13 +31,23 @@ class UIWindow:
         self.close_button = UITextButton(close_text,(iw,ih),self.on_close_button_pressed)
         self.content_image = UIImage(i2,(0,self.title_bar_h),self.outlines_color)
         
-        self.group = UIGroup(topleft_pos,self.width-self.close_btn_w,self.title_bar_h,self.on_drag_func)
+        self.group = UIGroup(topleft_pos,self.width-self.close_btn_w,self.title_bar_h,self.on_window_drag)
         self.group.add(self.title_bar,self.content_image,self.close_bg,self.close_button,self.title)
+        
+        self.content = UIGroup((0,self.content_start_height),0,0)
+        self.group.add(self.content)
+        
+        self.hover_area = pygame.Rect(topleft_pos,(width,height))
         
         self.visible = True
         
+    def on_window_drag(self):
+        self.hover_area.topleft = self.group.hitbox.topleft
+        if self.on_drag_func:
+            self.on_drag_func()
+        
     def add(self,*elements):
-        self.group.add(*elements)
+        self.content.add(*elements)
         
     def on_close_button_pressed(self):
         if self.on_close_func:
@@ -58,6 +68,3 @@ class UIWindow:
     def update(self):
         if self.visible:
             self.group.update()
-            
-    def offset_height(self,relative_height):
-        return self.content_start_height+relative_height

@@ -4,6 +4,7 @@ import sys
 sys.path.append("..")
 from graphics.surface import *
 from events.events import AxisDirections
+from ..animations.transform_animation import TransformAnimation
 
 class Sprite(pygame.sprite.Sprite):
     """
@@ -35,6 +36,15 @@ class Sprite(pygame.sprite.Sprite):
         self.components = []
         
         self.visible = True
+        
+        self.transform_animation = None
+        
+    def add_transform_animation(self,loop=False,single_step=False,schedule=None,on_next_step_func=None):
+        self.transform_animation = TransformAnimation(self,loop,single_step,schedule,on_next_step_func)
+        return self.transform_animation
+        
+    def update_transform_animation(self):
+        self.transform_animation.update()
         
     def show(self):
         self.visible = True
@@ -74,7 +84,7 @@ class Sprite(pygame.sprite.Sprite):
         Return an exact copy of the sprite (note: only built in attributes are copied).
         """
         new = Sprite(groups=self.groups(),z_index=self.z_index,topleft_pos= self.rect.topleft)
-        new.setup_attributes(self.direction,self.speed)
+        new.setup_attributes(self.direction.xy,self.speed.xy)
         new.set_parent(self.parent,self.parent_offset)
         for c in self.components:
             new.add_component(c.copy())
@@ -207,8 +217,8 @@ class Sprite(pygame.sprite.Sprite):
         """
         Update the position of both the directions. Check 'update_position' for more.
         """
-        self.update_position("h",dt)
-        self.update_position("v",dt)
+        self.update_position("horizontal",dt)
+        self.update_position("vertical",dt)
 
     def normalize_direction(self):
         """
@@ -250,8 +260,8 @@ class Sprite(pygame.sprite.Sprite):
         """
         Check collisions in both directions. For more check 'collision'.
         """
-        self.collision(collision_group,"h",on_collision_func)
-        self.collision(collision_group,"v",on_collision_func)
+        self.collision(collision_group,"horizontal",on_collision_func)
+        self.collision(collision_group,"vertical",on_collision_func)
 
     def resize_rect(self):
         """
