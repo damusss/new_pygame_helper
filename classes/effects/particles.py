@@ -1,9 +1,9 @@
 from random import choice, uniform
-from graphics.surface import *
+from ...graphics.surface import *
 import pygame
 from typing import List, Tuple, Union
-import sys
-sys.path.append("..")
+#import sys
+#sys.path.append("..")
 
 """
 Contains the particle classes.
@@ -34,35 +34,55 @@ class CircleParticles():
                  destroy_after_time: bool = False,
                  hide_after_time: bool = False):
 
-        self.origin_point = pygame.math.Vector2(origin)
+        self.origin_point:pygame.math.Vector2 = pygame.math.Vector2(origin)
+        """From where particles originates. <get, set>"""
         self.anchor_sprite = anchor_sprite
-        self.anchor_offset = pygame.math.Vector2(anchor_offset)
+        """The sprite the particles are attached to. <get, set>"""
+        self.anchor_offset:pygame.Vector2 = pygame.math.Vector2(anchor_offset)
+        """The offset from the sprite. <get, set>"""
 
-        self.particles = []
+        self.particles:list[dict] = []
+        """The particles list. <get>"""
 
-        self.use_gravity = use_gravity
-        self.gravity_speed = gravity_speed
+        self.use_gravity:bool = use_gravity
+        """If particles use gravity. <get, set>"""
+        self.gravity_speed:float = gravity_speed
+        """The speed of the gravity. <get, set>"""
         self._cooldown = cooldown
-        self.speed_random_range = speed_random_range
-        self.change_over_time = change_over_time
-        self.change_multiplier = change_multiplier
+        
+        self.speed_random_range:tuple[tuple[float,float],tuple[float,float]] = speed_random_range
+        """The speed range. <get, set>"""
+        self.change_over_time:bool = change_over_time
+        """If the particles change size over time. <get, set>"""
+        self.change_multiplier:int = change_multiplier
+        """If the particles grows or shrink. <get, set>"""
         self._start_scale = start_radius
-        self.destroy_or_hide_cooldown = destroy_or_hide_cooldown
-        self.destroy_after_time = destroy_after_time
-        self.hide_after_time = hide_after_time
-        self.active = active
-        self.colors = colors
+        self.destroy_or_hide_cooldown:int = destroy_or_hide_cooldown
+        """Cooldown for destroying or hiding the particles. <get, set>"""
+        self.destroy_after_time:bool = destroy_after_time
+        """If the particles should destroy after the cooldown. <get, set>"""
+        self.hide_after_time:bool = hide_after_time
+        """If the particles should hide after the cooldown. <get, set>"""
+        self.active:bool = active
+        """If the particles can generate. <get, set>"""
+        self.colors:list = colors
+        """The colors list. <get, set>"""
 
         self.scaleMinuser = self._start_scale/self._cooldown
+        """internal"""
 
-        self.lastTime = pygame.time.get_ticks()
-        self.lastHide = pygame.time.get_ticks()
+        self.lastTime:int = pygame.time.get_ticks()
+        """Last pygame tick. <get>"""
+        self.lastHide:int = pygame.time.get_ticks()
+        """Last time hidden. <get>"""
 
     def copy(self):
+        """Returns a copy of the particles."""
         return CircleParticles(self.origin_point.xy, self.anchor_sprite, self.anchor_offset, self.active, self.colors, self.use_gravity, self.gravity_speed, self.cooldown, self.speed_random_range, self.change_over_time, self.change_multiplier, self.start_radius, self.destroy_or_hide_cooldown, self.destroy_after_time, self.hide_after_time)
 
     @property
     def cooldown(self) -> int:
+        """How much particles last."""
         return self._cooldown
 
     @cooldown.setter
@@ -72,6 +92,7 @@ class CircleParticles():
 
     @property
     def start_radius(self) -> int:
+        """The start radius of particles."""
         return self._start_scale
 
     @start_radius.setter
@@ -81,20 +102,20 @@ class CircleParticles():
 
     def empty_particles(self) -> None:
         """
-        Clear the particle list.
+        Clears the particle list.
         """
         self.particles.clear()
 
     def update_position(self) -> None:
         """
-        Change the origin point to the anchor sprite center offsetted.
+        Changes the origin point to the anchor sprite center offsetted.
         """
         if self.anchor_sprite:
             self.origin_point.xy = self.anchor_offset + self.anchor_sprite.rect.center
 
     def generate(self) -> None:
         """
-        Add one particle to the list.
+        Adds one particle to the list.
         """
         if self.active:
             self.particles.append({"color": choice(self.colors), "pos": list(self.origin_point.xy), "speed": [uniform(self.speed_random_range[0][0], self.speed_random_range[0][1]), uniform(

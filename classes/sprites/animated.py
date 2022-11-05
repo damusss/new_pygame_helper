@@ -1,9 +1,9 @@
 import pygame
 from typing import Tuple,List,Union,Dict
-import sys
-sys.path.append("..")
-from graphics.surface import *
-from ..sprites.sprite import Sprite
+#import sys
+#sys.path.append("..")
+from ...graphics.surface import *
+from .sprite import Sprite
 
 class SimpleAnimatedSprite(Sprite):
     """
@@ -15,32 +15,9 @@ class SimpleAnimatedSprite(Sprite):
         self.frame_index = 0
         self.old_frame_index = 0
         self.frame_speed = frame_speed
-        
-        self._flipped = (False,False)
 
         self.image = self.frames[int(self.frame_index)]
         super().__init__(self.image,topleft_pos,groups,z_index)
-
-    def set_scale(self,scalex:float=1,scaley:float=1):
-        """
-        Scale the sprite.
-        """
-        self._scale = (scalex,scaley)
-        self.apply_transforms()
-
-    def flip(self,horizontal:bool,vertical:bool)->pygame.Surface:
-        """
-        Flip the sprite.
-        """
-        self._flipped = (horizontal,vertical)
-        self.apply_transforms()
-
-    def rotate(self,angle:int):
-        """
-        Rotate the sprite.
-        """
-        self._angle += angle
-        self.apply_transforms()
 
     def set_frames(self,frames):
         """
@@ -57,30 +34,6 @@ class SimpleAnimatedSprite(Sprite):
         if resize_rect:
             self.resize_rect()
         return self.image
-    
-    @property
-    def scale(self):
-        return self._scale
-    
-    @scale.setter
-    def scale(self,value):
-        self.set_scale(value[0],value[1])
-        
-    @property
-    def angle(self):
-        return self._angle
-    
-    @angle.setter
-    def angle(self,value):
-        self.rotate(value-self._angle)
-        
-    @property
-    def flipped(self):
-        return self._flipped
-    
-    @flipped.setter
-    def flipped(self,value):
-        self.flip(value[0],value[1])
 
     def copy(self):
         """
@@ -161,33 +114,10 @@ class AnimatedSprite(Sprite):
         self.frame_index = 0
         self.old_frame_index = 0
         self.frame_speed = frame_speed
-        
-        self._flipped = (False,False)
 
         self.image = self.animations[self.current_animation][int(self.frame_index)]
 
         super().__init__(self.image,topleft_pos,groups,z_index)
-
-    def set_scale(self,scalex:float=1,scaley:float=1):
-        """
-        Scale the sprite.
-        """
-        self._scale = (scalex,scaley)
-        self.apply_transforms()
-
-    def flip(self,horizontal:bool,vertical:bool)->pygame.Surface:
-        """
-        Flip the sprite.
-        """
-        self._flipped = (horizontal,vertical)
-        self.apply_transforms()
-
-    def rotate(self,angle:int):
-        """
-        Rotate the sprite.
-        """
-        self._angle += angle
-        self.apply_transforms()
 
     def set_animations(self,animations_dict:Dict[str,List[pygame.Surface]]):
         """
@@ -204,30 +134,6 @@ class AnimatedSprite(Sprite):
         if resize_rect:
             self.resize_rect()
         return self.image
-        
-    @property
-    def scale(self):
-        return self._scale
-    
-    @scale.setter
-    def scale(self,value):
-        self.set_scale(value[0],value[1])
-        
-    @property
-    def angle(self):
-        return self._angle
-    
-    @angle.setter
-    def angle(self,value):
-        self.rotate(value-self._angle)
-        
-    @property
-    def flipped(self):
-        return self._flipped
-    
-    @flipped.setter
-    def flipped(self,value):
-        self.flip(value[0],value[1])
 
     def copy(self):
         """

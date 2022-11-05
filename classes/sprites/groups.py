@@ -1,6 +1,6 @@
 import pygame
 from typing import List,Dict,Any,Type
-from ..sprites.sprite import Sprite
+from .sprite import Sprite
 
 class Group(pygame.sprite.Group):
     """

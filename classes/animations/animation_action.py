@@ -1,22 +1,35 @@
 import pygame
-#from ..sprites.sprite import Sprite
+from typing import Any
 
 class AnimationActions:
-    position = "position"
-    direction = "direction"
-    speed = "speed"
-    angle = "angle"
-    scale = "scale"
+    """The different transforms you can change."""
+    position:str = "position"
+    """Changes the position."""
+    direction:str = "direction"
+    """Changes the direction."""
+    speed:str = "speed"
+    """Changes the speed."""
+    angle:str = "angle"
+    """Changes the rotation."""
+    scale:str = "scale"
+    """Changes the scale."""
     
 class AnimationAction:
-    def __init__(self,sprite,action_type,value):
+    """The action that mpdify the sprite. Give an appropriate value for the type selected."""
+    def __init__(self,sprite,action_type:str,value:Any):
         self.sprite = sprite
-        self.value = value
-        self.type = action_type
-        self.update_value = None
-        self.last_milli = pygame.time.get_ticks()
+        """The sprite to modify. <get>"""
+        self.value:Any = value
+        """The desired value. <get>"""
+        self.type:str = action_type
+        """The action type. <get>"""
+        self.update_value:Any = None
+        """The value that will be applied every frame. Depends of the time. <get>"""
+        self.last_milli:float = pygame.time.get_ticks()
+        """The last pygame tick. <get>"""
         
-    def calculate_value(self,time):
+    def calculate_value(self,time:float)->None:
+        """Internal method to calclulate the update_value."""
         match self.type:
             case AnimationActions.position:
                 self.update_value = pygame.Vector2(self.value[0]/time,self.value[1]/time)
@@ -29,7 +42,8 @@ class AnimationAction:
             case AnimationActions.scale:
                 self.update_value = pygame.Vector2((self.value[0]-1)/time,(self.value[1]-1)/time)
         
-    def apply(self):
+    def apply(self)->None:
+        """Applies the update_value to the sprite."""
         current = pygame.time.get_ticks()
         dt = (current-self.last_milli)
         match self.type:

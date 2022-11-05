@@ -1,14 +1,23 @@
 import pygame
 from typing import Tuple,List,Union
-import sys
-sys.path.append("..")
-from graphics.surface import *
-from events.events import AxisDirections
+#import sys
+#sys.path.append("..")
+from ...graphics.surface import *
+from ...events.events import AxisDirections
 from ..animations.transform_animation import TransformAnimation
 
 class Sprite(pygame.sprite.Sprite):
     """
     A sprite class with the addition of useful methods and attributes.
+    """
+    update_function_example = """
+    self.update_old_hitbox()
+    self.normalize_direction()
+    self.collisions_and_positions()
+    self.update_components() # if any
+    self.update_transform_animation() # if added
+    self.stick_to_parent() # if set
+    self.animate() # only in animated sprites
     """
     def __init__(self,image:pygame.Surface=None,topleft_pos:Tuple[int,int]=None,groups:Union[pygame.sprite.Group,List[pygame.sprite.Group]]=[],z_index:int=0):
         super().__init__(groups)
@@ -29,6 +38,7 @@ class Sprite(pygame.sprite.Sprite):
             
         self._scale = (1,1)
         self._angle = 0
+        self._flipped = (False,False)
                 
         self.parent = None
         self.parent_offset = pygame.math.Vector2()
@@ -39,19 +49,16 @@ class Sprite(pygame.sprite.Sprite):
         
         self.transform_animation = None
         
-    def add_transform_animation(self,loop=False,single_step=False,schedule=None,on_next_step_func=None):
-        self.transform_animation = TransformAnimation(self,loop,single_step,schedule,on_next_step_func)
-        return self.transform_animation
+        self.name = "sprite"
+        self.tag = "no tag"
         
-    def update_transform_animation(self):
-        self.transform_animation.update()
+    def set_labels(self,name,tag):
+        self.name = name
+        self.tag = tag
         
-    def show(self):
-        self.visible = True
-        
-    def hide(self):
-        self.visible = False
-        
+    def __str__(self):
+        return f"<{self.__class__.__name__}> {self.name} ({self.tag}) in {len(self.groups())} groups"
+    
     def setup_attributes(self,direction:Tuple[int,int]=(0,0),speed:Tuple[float,float]=(0,0)):
         self.direction = pygame.math.Vector2(direction)
         self.speed = pygame.math.Vector2(speed)
@@ -60,24 +67,28 @@ class Sprite(pygame.sprite.Sprite):
         self.parent = parent
         self.parent_offset = pygame.math.Vector2(parent_offset)
         
-    def update_components(self):
-        for c in self.components:
-            c.update()
-            
+    def set_original_image(self):
+        self.original_image = self.image
+        
+    def set_hitbox(self,hitbox_inflate:Union[Tuple[int,int],List[int],pygame.math.Vector2]=(0,0))->pygame.Rect:
+        """
+        Setup the hitbox !after rect creation!
+        """
+        self.hitbox = self.rect.inflate(hitbox_inflate[0], hitbox_inflate[1])
+        self.update_old_hitbox()
+        return self.hitbox
+    
     def add_component(self,component):
         self.components.append(component)
         
     def remove_components(self,component):
         self.components.remove(component)
-        
-    def set_original_image(self):
-        self.original_image = self.image
+      
+    def add_transform_animation(self,loop=False,single_step=False,schedule=None,on_next_step_func=None):
+        self.transform_animation = TransformAnimation(self,loop,single_step,schedule,on_next_step_func)
+        return self.transform_animation
 
-    def handle_event(self,event:pygame.event.Event):
-        """
-        Override this method.
-        """
-        pass
+    # COPY AND SAVING
 
     def copy(self):
         """
@@ -149,54 +160,7 @@ class Sprite(pygame.sprite.Sprite):
 
         return new
 
-    def set_hitbox(self,hitbox_inflate:Union[Tuple[int,int],List[int],pygame.math.Vector2]=(0,0))->pygame.Rect:
-        """
-        Setup the hitbox !after rect creation!
-        """
-        self.hitbox = self.rect.inflate(hitbox_inflate[0], hitbox_inflate[1])
-        return self.hitbox
-
-    def draw(self,surface:pygame.Surface)->None:
-        """
-        Draw the image on the screen.
-        """
-        if self.visible:
-            surface.blit(self.image,self.rect)
-
-    def draw_rect(self,surface,color="white",width:int=2,border_radius:int=0):
-        """
-        Draw the sprite rect.
-        """
-        pygame.draw.rect(surface, color, self.rect,width,border_radius)
-
-    def is_on_screen(self,dokill:bool=False,surface:pygame.Surface=None)->bool:
-        """
-        Check if the sprite is inside the window
-        """
-        if not surface:
-            surface = pygame.display.get_surface()
-        if self.rect.right > 0 and self.rect.left < surface.get_width() and self.rect.bottom > 0 and self.rect.top < surface.get_height():
-            return True
-        return False
-
-    def check_collision(self,sprite):
-        """
-        Check the collision with another sprite.
-        """
-        return self.rect.colliderect(sprite.rect)
-
-    def mouse_collision(self):
-        """
-        Check if the mouse is hovering the sprite.
-        """
-        pos = pygame.mouse.get_pos()
-        return self.rect.collidepoint(pos[0], pos[1] )
-
-    def refresh_position(self):
-        """
-        Set the position to the center of the rectangle (useful after changing the rectangle position manually).
-        """
-        self.position.xy = self.rect.center
+    # UPDATES
 
     def update_position(self,direction=AxisDirections.horizontal,dt=1):
         """
@@ -237,67 +201,55 @@ class Sprite(pygame.sprite.Sprite):
         """
         for sprite in collision_group.sprites():
             if hasattr(sprite, "hitbox"):
-                if sprite.hitbox.colliderect(self.hitbox):
+                if sprite.hitbox.colliderect(self.hitbox) and sprite != self:
                     if direction == AxisDirections.horizontal:
-                        if self.direction.x > 0 and self.hitbox.left < sprite.hitbox.left:
+                        # collision on the right
+                        if self.hitbox.right >= sprite.hitbox.left and self.old_hitbox.right <= sprite.old_hitbox.left:
                             self.hitbox.right = sprite.hitbox.left
-                        if self.direction.x < 0 and self.hitbox.right > sprite.hitbox.right:
+
+                        # collision on the left
+                        if self.hitbox.left <= sprite.hitbox.right and self.old_hitbox.left >= sprite.old_hitbox.right:
                             self.hitbox.left = sprite.hitbox.right
+                            
                         self.rect.centerx = self.hitbox.centerx
-                        self.position.x = self.hitbox.centerx
+                        self.refresh_position()
+                        
+                        self.on_collision_enter(sprite,direction)
+                        if on_collision_func:
+                            on_collision_func(sprite,direction)
 
                     if direction == AxisDirections.vertical:
-                        if self.direction.y > 0 and self.hitbox.top < sprite.hitbox.top:
+                        # collision on the bottom
+                        if self.hitbox.bottom >= sprite.hitbox.top and self.old_hitbox.bottom <= sprite.old_hitbox.top:
                             self.hitbox.bottom = sprite.hitbox.top
-                        if self.direction.y < 0 and self.hitbox.bottom > sprite.hitbox.bottom:
+
+                        # collision on the top
+                        if self.hitbox.top <= sprite.hitbox.bottom and self.old_hitbox.top >= sprite.old_hitbox.bottom:
                             self.hitbox.top = sprite.hitbox.bottom
+                            
                         self.rect.centery = self.hitbox.centery
-                        self.position.y = self.hitbox.centery
-                    if on_collision_func:
-                        on_collision_func(sprite,direction)
+                        self.refresh_position()
+                        
+                        self.on_collision_enter(sprite,direction)
+                        if on_collision_func:
+                            on_collision_func(sprite,direction)
+                        
+    def update_old_hitbox(self):
+        self.old_hitbox = self.hitbox.copy()
 
     def collisions(self,collision_group,on_collision_func=None):
         """
         Check collisions in both directions. For more check 'collision'.
         """
+        self.update_old_hitbox()
         self.collision(collision_group,"horizontal",on_collision_func)
         self.collision(collision_group,"vertical",on_collision_func)
 
-    def resize_rect(self):
+    def handle_event(self,event:pygame.event.Event):
         """
-        Resize the rect to the image size, keeping the position. Useful after changing image.
+        Override this method.
         """
-        self.rect = self.image.get_rect(center=self.rect.center)
-
-    def set_scale(self,scalex:float=1,scaley:float=1,smooth:bool=False)->pygame.Surface:
-        """
-        Scale the sprite and resize the rect.
-        """
-        self._scale = (scalex,scaley)
-        scaled_w,scaled_h = self.original_image.get_width()*scalex,self.original_image.get_height()*scaley
-        self.image = scale_image(self.original_image,None,(scaled_w,scaled_h))
-        self.image = pygame.transform.rotate(self.image, self._angle)
-        self.resize_rect()
-        return self.image
-
-    def flip(self,horizontal:bool,vertical:bool)->pygame.Surface:
-        """
-        Flip the sprite and resize the rect.
-        """
-        self.image = pygame.transform.flip(self.image,horizontal,vertical)
-        self.resize_rect()
-        return self.image
-
-    def rotate(self,angle:int):
-        """
-        Rotate the sprite and resize the rect.
-        """
-        self._angle += angle
-        scaled_w,scaled_h = self.original_image.get_width()*self._scale[0],self.original_image.get_height()*self._scale[1]
-        self.image = scale_image(self.original_image,None,(scaled_w,scaled_h))
-        self.image = pygame.transform.rotate(self.image, self._angle)
-        self.resize_rect()
-        return self.image
+        pass
 
     def stick_to_parent(self):
         """
@@ -306,6 +258,88 @@ class Sprite(pygame.sprite.Sprite):
         if self.parent:
             self.position = self.parent_offset+self.parent.position
             
+    def update_components(self):
+        for c in self.components:
+            c.update()
+            
+    def update_transform_animation(self):
+        self.transform_animation.update()
+
+    def collisions_and_positions(self,collision_group,dt=1,on_collision_func=None):
+        self.update_old_hitbox()
+        self.update_position("horizontal",dt)
+        self.collision(collision_group,"horizontal",on_collision_func)
+        self.update_position("vertical",dt)
+        self.collision(collision_group,"vertical",on_collision_func)
+        
+        
+    def trigger_collisions(self,collision_group,on_collision_func=None):
+        for sprite in collision_group.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox) and sprite != self:
+                    self.on_collision_enter(sprite,"none")
+                    if on_collision_func:
+                        on_collision_func(sprite,"none")
+
+    # DRAW
+    
+    def draw(self,surface:pygame.Surface)->None:
+        """
+        Draw the image on the screen.
+        """
+        if self.visible:
+            surface.blit(self.image,self.rect)
+
+    def draw_rect(self,surface,color="white",width:int=2,border_radius:int=0):
+        """
+        Draw the sprite rect.
+        """
+        pygame.draw.rect(surface, color, self.rect,width,border_radius)
+        
+    def draw_hitbox(self,surface,color="white",width:int=2,border_radius:int=0):
+        """
+        Draw the sprite rect.
+        """
+        pygame.draw.rect(surface, color, self.hitbox,width,border_radius)
+        
+    def draw_old_hitbox(self,surface,color="white",width:int=2,border_radius:int=0):
+        """
+        Draw the sprite rect.
+        """
+        pygame.draw.rect(surface, color, self.old_hitbox,width,border_radius)
+
+    # TRANSFORMS
+    def set_scale(self,scalex:float=1,scaley:float=1,smooth:bool=False)->pygame.Surface:
+        """
+        Scale the sprite and resize the rect.
+        """
+        self._scale = (scalex,scaley)
+        self.apply_transforms()
+
+    def flip(self,horizontal:bool,vertical:bool)->pygame.Surface:
+        """
+        Flip the sprite and resize the rect.
+        """
+        self._flipped = (horizontal,vertical)
+        self.apply_transforms()
+
+    def rotate(self,angle:int):
+        """
+        Rotate the sprite and resize the rect.
+        """
+        self._angle += angle
+        self.apply_transforms()
+    
+    def apply_transforms(self,resize_rect:bool=True)->pygame.Surface:
+        self.image = self.original_image
+        self.image = pygame.transform.flip(self.image,self._flipped[0],self._flipped[1])
+        newsizes = self.image.get_width()*self._scale[0],self.image.get_height()*self._scale[1]
+        self.image = scale_image(self.image,None,newsizes)
+        self.image = pygame.transform.rotate(self.image,self._angle)
+        if resize_rect:
+            self.resize_rect()
+        return self.image
+    
     @property
     def scale(self):
         return self._scale
@@ -321,3 +355,61 @@ class Sprite(pygame.sprite.Sprite):
     @angle.setter
     def angle(self,value):
         self.rotate(value-self._angle)
+        
+    @property
+    def flipped(self):
+        return self._flipped
+    
+    @flipped.setter
+    def flipped(self,value):
+        self.flip(value[0],value[1])
+            
+    # OTHER
+    
+    def is_on_screen(self,surface,dokill:bool=False)->bool:
+        """
+        Check if the sprite is inside the window
+        """
+        if self.rect.right > 0 and self.rect.left < surface.get_width() and self.rect.bottom > 0 and self.rect.top < surface.get_height():
+            return True
+        return False
+
+    def signle_collision(self,sprite):
+        """
+        Check the collision with another sprite.
+        """
+        return self.rect.colliderect(sprite.rect)
+
+    def mouse_collision(self):
+        """
+        Check if the mouse is hovering the sprite.
+        """
+        pos = pygame.mouse.get_pos()
+        return self.rect.collidepoint(pos[0], pos[1] )
+
+    def refresh_position(self):
+        """
+        Set the position to the center of the rectangle (useful after changing the rectangle position manually).
+        """
+        self.position.xy = self.rect.center
+        self.hitbox.center = self.rect.center
+        
+    def resize_rect(self):
+        """
+        Resize the rect to the image size, keeping the position. Useful after changing image.
+        """
+        self.rect = self.image.get_rect(center=self.rect.center)
+        
+    def show(self):
+        self.visible = True
+        
+    def hide(self):
+        self.visible = False
+        
+    def on_collision_enter(self,sprite,direction):
+        pass
+    
+    def move(self,amount_x,amount_y):
+        self.rect.x += amount_x
+        self.rect.y += amount_y
+        self.refresh_position()

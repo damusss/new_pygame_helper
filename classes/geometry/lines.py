@@ -1,6 +1,6 @@
 import sys
-sys.path.append("...")
-from _utils import det, tuple_slope, in_range
+#sys.path.append("...")
+from ..._utils import det, tuple_slope, in_range
 from typing import Tuple, Union
 import pygame
 import math
@@ -16,33 +16,39 @@ class Segment():
     A useful class to more easly work with segments in pygame or in general.
     """
 
-    def __init__(self, start_pos: Tuple[int, int], end_pos: Tuple[int, int], color: Union[str, Tuple[int, int, int]] = "white", thicness: int = 2):
-        self.start = pygame.math.Vector2(start_pos)
-        self.end = pygame.math.Vector2(end_pos)
-        self.color = color
-        self.thicness = thicness
+    def __init__(self, start_pos: Tuple[int, int], end_pos: Tuple[int, int], color: Union[str, Tuple[int, int, int],pygame.Color] = "white", thicness: int = 2):
+        self.start:pygame.Vector2 = pygame.math.Vector2(start_pos)
+        """The start point. <get, set>"""
+        self.end:pygame.Vector2 = pygame.math.Vector2(end_pos)
+        """The end point. <get, set>"""
+        self.color:str|tuple[int,int,int]|pygame.Color = color
+        """The color. <get, set>"""
+        self.thicness:int = thicness
+        """The thicness. <get, set>"""
 
     def to_tuple(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        """Returns a tuple representation of the segment."""
         return (self.start.xy, self.end.xy)
 
     def colliderect(self, rect: pygame.Rect) -> bool:
+        """Checks if the segment intersects a rect."""
         return any([self.tuple_intersects((rect.topleft, rect.bottomleft)), self.tuple_intersects((rect.topleft, rect.topright)), self.tuple_intersects((rect.bottomleft, rect.bottomright)), self.tuple_intersects((rect.topright, rect.bottomright))])
 
     def set_start(self, pos: Tuple[int, int]):
         """
-        Set the start xy attribute.
+        Sets the start xy attribute.
         """
         self.start.xy = (pos[0], pos[1])
 
     def set_end(self, pos: Tuple[int, int]):
         """
-        Set the end xy attribute.
+        Sets the end xy attribute.
         """
         self.end.xy = (pos[0], pos[1])
 
     def int(self):
         """
-        Correct any non-int value on the points.
+        Corrects any non-int value on the points.
         """
         self.start.x = int(self.start.x)
         self.start.y = int(self.start.y)
@@ -51,20 +57,21 @@ class Segment():
 
     def int_point(self, point: Tuple[float, float]) -> Tuple[int, int]:
         """
-        Correct any non-int values in a point and return it.
+        Corrects any non-int values in a point and return it.
         """
         return (int(point[0]), int(point[1]))
 
     def move(self, x: int, y: int):
         """
-        Move the segment by an amount.
+        Moves the segment by an amount.
         """
         self.start.x += x
         self.start.y += y
         self.end.x += x
         self.end.y += y
 
-    def extend(self, amount, extend_start=False):
+    def extend(self, amount:int, extend_start:bool=False)->tuple[float,float]:
+        """Changes the segment size."""
         current_x = self.end.x-self.start.x
         current_y = self.end.y-self.start.y
         if current_x == 0:
@@ -95,25 +102,25 @@ class Segment():
 
     def copy(self):
         """
-        Return an exact copy of the segment.
+        Returns an exact copy of the segment.
         """
         return Segment(self.start, self.end, self.color, self.thicness)
 
     def to_line(self):
         """
-        Return a line with the same properties of this segment.
+        Returns a line with the same properties of this segment.
         """
         return Line(self.start, self.end, self.color, self.thicness)
 
     def lenght(self) -> float:
         """
-        Return the lenght of the segment.
+        Returns the lenght of the segment.
         """
         return math.dist(self.start, self.end)
 
     def slope(self) -> float:
         """
-        Return the slope of the segment.
+        Returns the slope of the segment.
         """
         if (self.end.x-self.start.x) == 0:
             return None
@@ -121,13 +128,13 @@ class Segment():
 
     def is_parallel(self, segment) -> bool:
         """
-        Check if two segments are parallel.
+        Checks if two segments are parallel.
         """
         return self.slope() == segment.slope()
 
     def tuple_is_parallel(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> bool:
         """
-        Check if this segment and a tuple based segment are parallel.
+        Checks if this segment and a tuple based segment are parallel.
         """
         return self.slope() == tuple_slope(tuplee)
 
@@ -142,7 +149,7 @@ class Segment():
 
     def tuple_absolute_intersection_point(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[float, float]:
         """
-        Calculate the intersection point of a segment and a tuple based segment (non parallel) even if the point is not inside them.
+        Calculates the intersection point of a segment and a tuple based segment (non parallel) even if the point is not inside them.
         """
         if self.tuple_is_parallel(tuplee):
             raise ValueError("Parallel segments cannot intersect.")
@@ -157,7 +164,7 @@ class Segment():
 
     def tuple_intersects(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> bool:
         """
-        Check if the segment and a tuple based segment intersects.
+        Checks if the segment and a tuple based segment intersects.
         """
         if not self.tuple_is_parallel(tuplee):
             point = self.tuple_absolute_intersection_point(tuplee)
@@ -166,7 +173,7 @@ class Segment():
 
     def absolute_intersection_point(self, segment) -> Tuple[float, float]:
         """
-        Calculate the intersection point of two segments (non parallel) even if the point is not inside them.
+        Calculates the intersection point of two segments (non parallel) even if the point is not inside them.
         """
         if self.is_parallel(segment):
             raise ValueError("Parallel segments cannot intersect.")
@@ -192,7 +199,7 @@ class Segment():
 
     def intersects(self, segment) -> bool:
         """
-        Check if the segments intersects.
+        Checks if the segments intersects.
         """
         if not self.is_parallel(segment):
             point = self.absolute_intersection_point(segment)
@@ -201,7 +208,7 @@ class Segment():
 
     def draw(self, surface: pygame.Surface):
         """
-        Draw the segment.
+        Draws the segment.
         """
         pygame.draw.line(surface, self.color, self.start.xy,
                          self.end.xy, width=self.thicness)
@@ -212,11 +219,15 @@ class Line():
     Similar to the segment, but with slightly different math, as two non parallel lines always have an intersection.
     """
 
-    def __init__(self, point1: Tuple[int, int], point2: Tuple[int, int], color: Union[str, Tuple[int, int]] = "white", thicness: int = 2):
-        self.point1 = pygame.math.Vector2(point1)
-        self.point2 = pygame.math.Vector2(point2)
-        self.color = color
-        self.thicness = thicness
+    def __init__(self, point1: Tuple[int, int], point2: Tuple[int, int], color: Union[str, Tuple[int, int], pygame.Color] = "white", thicness: int = 2):
+        self.point1:pygame.Vector2 = pygame.math.Vector2(point1)
+        """One of the 2 points. <get, set>"""
+        self.point2:pygame.Vector2 = pygame.math.Vector2(point2)
+        """One of the 2 points. <get, set>"""
+        self.color:str|tuple[int,int,int]|pygame.Color = color
+        """The color. <get, set>"""
+        self.thicness:int = thicness
+        """The thicness. <get, set>"""
 
     def to_tuple(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
         return (self.point1.xy, self.point2.xy)
@@ -226,19 +237,19 @@ class Line():
 
     def set_point1(self, pos: Tuple[int, int]):
         """
-        Set the point1 xy attribute.
+        Sets the point1 xy attribute.
         """
         self.point1.xy = (pos[0], pos[1])
 
     def set_point2(self, pos: Tuple[int, int]):
         """
-        Set the point2 xy attribute.
+        Sets the point2 xy attribute.
         """
         self.point2.xy = (pos[0], pos[1])
 
     def int(self):
         """
-        Correct any non-int value on the points.
+        Corrects any non-int value on the points.
         """
         self.point1.x = int(self.point1.x)
         self.point1.y = int(self.point1.y)
@@ -247,13 +258,13 @@ class Line():
 
     def int_point(self, point: Tuple[float, float]) -> Tuple[int, int]:
         """
-        Correct any non-int values in a point and return it.
+        Corrects any non-int values in a point and return it.
         """
         return (int(point[0]), int(point[1]))
 
     def move(self, x: int, y: int):
         """
-        Move the line by an amount.
+        Moves the line by an amount.
         """
         self.point1.x += x
         self.point1.y += y
@@ -262,13 +273,13 @@ class Line():
 
     def lenght(self) -> float:
         """
-        Return the lenght between the two known points.
+        Returns the lenght between the two known points.
         """
         return math.dist(self.point1, self.point2)
 
     def slope(self) -> float:
         """
-        Return the slope of the line.
+        Returns the slope of the line.
         """
         if (self.point2.x-self.point1.x) == 0:
             return None
@@ -276,13 +287,13 @@ class Line():
 
     def is_parallel(self, line) -> bool:
         """
-        Check if two lines are parallel.
+        Checks if two lines are parallel.
         """
         return self.slope() == line.slope()
 
     def tuple_is_parallel(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> bool:
         """
-        Check if this line and a tuple based line are parallel.
+        Checks if this line and a tuple based line are parallel.
         """
         return self.slope() == tuple_slope(tuplee)
 
@@ -296,7 +307,7 @@ class Line():
 
     def tuple_absolute_intersection_point(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[float, float]:
         """
-        Calculate the intersection point of a line and a tuple based line (non parallel) even if the point is not inside them.
+        Calculates the intersection point of a line and a tuple based line (non parallel) even if the point is not inside them.
         """
         if self.tuple_is_parallel(tuplee):
             raise ValueError("Parallel lines cannot intersect.")
@@ -311,7 +322,7 @@ class Line():
 
     def tuple_intersects(self, tuplee: Tuple[Tuple[float, float], Tuple[float, float]]) -> bool:
         """
-        Check if the segment and a tuple based segment intersects.
+        Checks if the segment and a tuple based segment intersects.
         """
         if not self.tuple_is_parallel(tuplee):
             return True
@@ -319,19 +330,19 @@ class Line():
 
     def copy(self):
         """
-        Return an exact copy of the line.
+        Returns an exact copy of the line.
         """
         return Line(self.point1, self.point2, self.color, self.thicness)
 
     def to_segment(self):
         """
-        Convert the line to a segment.
+        Converts the line to a segment.
         """
         return Segment(self.point1, self.point2, self.color, self.thicness)
 
     def absolute_intersection_point(self, line) -> Tuple[float, float]:
         """
-        Calculate the intersection point of two lines (non parallel, otherwise throws an error).
+        Calculates the intersection point of two lines (non parallel, otherwise throws an error).
         """
         if self.is_parallel(line):
             raise ValueError("Parallel lines cannot intersect.")
@@ -354,7 +365,7 @@ class Line():
 
     def intersects(self, line) -> bool:
         """
-        Check if the lines intersects (aka if they are not parallel).
+        Checks if the lines intersects (aka if they are not parallel).
         """
         if not self.is_parallel(line):
             return True
@@ -362,7 +373,7 @@ class Line():
 
     def draw(self, surface: pygame.Surface):
         """
-        Draw the line (it will look like a segment).
+        Draws the line (it will look like a segment).
         """
         pygame.draw.line(surface, self.color, self.point1.xy,
                          self.point2.xy, width=self.thicness)

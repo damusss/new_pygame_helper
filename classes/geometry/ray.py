@@ -1,5 +1,5 @@
 import sys
-sys.path.append("..")
+#sys.path.append("..")
 from .lines import Segment
 from ..sprites import sprite as sprites
 import pygame
@@ -26,8 +26,9 @@ class Ray():
     """
 
     def __init__(self, origin: Tuple[int, int], direction: Tuple[float, float], lenght: int, color: Union[str, Tuple[int, int, int]] = "white", thicness: int = 2):
-        self.ray = Segment(
+        self.ray:Segment = Segment(
             origin, (origin[0]+direction[0]*lenght, origin[1]+direction[1]*lenght), color, thicness)
+        """The segment. <get>"""
         self._lenght = lenght
         self._direction = direction
 

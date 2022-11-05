@@ -52,3 +52,8 @@ def set_noframe()->pygame.Surface:
 	"""
 	sizes = pygame.display.get_window_size()
 	return pygame.display.set_mode(sizes,pygame.NOFRAME)
+
+def save_screenshot(filename:str="window_screenshot.png")->None:
+    """Saves the window surface to a file."""
+    screen = pygame.display.get_surface()
+    pygame.image.save(screen,filename)

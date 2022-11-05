@@ -1,38 +1,63 @@
 import pygame
 from .animation_step import AnimationStep
 from .animation_action import AnimationAction
+from typing import Any
 
-transform_animation_schedule_example = {
+transform_animation_schedule_example:dict[str,list[dict[str,Any]]] = {
     "steps":[
         {"time":2000,
          "actions":[
             {"type":"position","value":(200,100)},
+            {"type":"scale","value":(1,2)},
             {"type":"angle","value":45},
-            {"type":"scale","value":(1,2)}
-         ]}
+         ]},
+        {
+            "time":1000,
+            "actions":[
+                {"type":"position","value":(-200,100)},
+                {"type":"scale","value":(1,1)},
+                {"type":"angle","value":-45},
+            ]
+        }
     ]
 }
+"""Example of an animation schedule for the transform animation."""
 
 class TransformAnimation:
-    def __init__(self,sprite,loop = False,single_step=False,schedule = None,on_next_step_func=None):
+    """
+    Animates a sprite changing the transforms of it.
+    """
+    schedule_example:dict[str,list[dict[str,Any]]] = transform_animation_schedule_example
+    """Example of an animation schedule."""
+    def __init__(self,sprite,loop:bool = False,single_step:bool=False,schedule:dict[str,list[dict[str,Any]]] = None,on_next_step_func=None):
         self.sprite = sprite
-        self.loop = loop
-        self.steps = []
+        """The sprite to apply actions to. <get>"""
+        self.loop:bool = loop
+        """Whether the animation should loop. <get, set>"""
+        self.steps:list[AnimationStep] = []
+        """The steps list. <get>"""
         if single_step:
             self.new_step(0.1)
         
-        self.current_step = None
-        self.current_index = 0
+        self.current_step:AnimationStep = None 
+        """The current playing step. <get>"""
+        self.current_index:int = 0
+        """The current playing step index. <get>"""
         
         self.set_initial_sprite()
         
-        self.schedule:dict = schedule
+        self.schedule:dict[str,list[dict[str,Any]]] = schedule
+        """The schedule to follow. <get>"""
         if self.schedule:
             self.apply_schedule()
             
         self.on_next = on_next_step_func
+        """The function to run when a step starts to play. <get>"""
             
-    def set_initial_sprite(self):
+    def set_initial_sprite(self)->None:
+        """
+        Remembers the attributes of the sprite before it plays.
+        """
         self.initial_sprite = {
             "pos":self.sprite.position.xy,
             "dir":self.sprite.direction.xy,
@@ -42,7 +67,10 @@ class TransformAnimation:
         }
         
         
-    def apply_schedule(self):
+    def apply_schedule(self)->None:
+        """
+        Applies the schedule.
+        """
         steps = self.schedule["steps"]
         for step in steps:
             actions = step["actions"]
@@ -51,25 +79,40 @@ class TransformAnimation:
                 actual_actions.append(AnimationAction(self.sprite,a["type"],a["value"]))
             self.steps.append(AnimationStep(step["time"],self.sprite,self,*actual_actions))
         
-    def new_step(self,time,*actions):
-        self.steps.append(AnimationStep(time,self.sprite,self,*actions))
+    def new_step(self,time:float,*actions:AnimationAction)->AnimationStep:
+        """
+        Creates a new step.
+        """
+        step = AnimationStep(time,self.sprite,self,*actions)
+        self.steps.append(step)
+        return step
         
-    def add_step(self,step):
+    def add_step(self,step:AnimationStep)->None:
+        """Adds a step to the list."""
         self.steps.append(step)
         
-    def restart(self):
+    def restart(self)->None:
+        """
+        Restarts the animation.
+        """
         self.stop()
         self.back_to_start_condition()
         self.play()
         
-    def play(self):
+    def play(self)->None:
+        """
+        Plays the animation.
+        """
         self.set_initial_sprite()
         if self.steps:
             self.current_step = self.steps[0]
             self.current_index = 0
             self.current_step.start()
         
-    def next(self):
+    def next(self)->None:
+        """
+        Internal method for going to the next step.
+        """
         new_i = self.current_index + 1
         if new_i <= len(self.steps)-1:
             self.current_step = self.steps[new_i]
@@ -86,7 +129,10 @@ class TransformAnimation:
             else:
                 self.stop()
                 
-    def back_to_start_condition(self):
+    def back_to_start_condition(self)->None:
+        """
+        Brings the sprite to the starting state.
+        """
         self.sprite.position.xy = self.initial_sprite["pos"]
         self.sprite.rect.center = (round(self.sprite.position.x),round(self.sprite.position.y))
         self.sprite.hitbox.center = self.sprite.rect.center
@@ -95,13 +141,16 @@ class TransformAnimation:
         self.sprite.set_scale(self.initial_sprite["scale"][0],self.initial_sprite["scale"][1])
         self.sprite.angle = self.initial_sprite["angle"]
                 
-    def is_playing(self):
+    def is_playing(self)->None:
+        """Checks if the animation is playing."""
         return self.current_step != None
     
-    def stop(self):
+    def stop(self)->None:
+        """Stops the animation."""
         self.current_step = None
         self.current_index = 0
         
     def update(self):
+        """Updates the animation."""
         if self.current_step != None:
             self.current_step.update()

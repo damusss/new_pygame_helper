@@ -1,6 +1,6 @@
 import pygame
 from typing import Union, Tuple, List
-import sys
+#import sys
 
 """
 Contains the Trail class.
@@ -14,18 +14,28 @@ class Trail():
 
     def __init__(self, sprite, offset: Union[Tuple[int, int], List[int], pygame.math.Vector2] = (0, 0), color: Union[str, Tuple[int, int, int]] = "white", trail_thicness: int = 5, disappear_speed: float = 0.1, active: bool = True):
         self.sprite = sprite
+        """The sprite attached to. <get, set>"""
 
-        self.offset = pygame.math.Vector2(offset)
-        self.origin_point = self.offset+self.sprite.rect.center
-        self.color = color
-        self.trail_thicness = trail_thicness
-        self.disappear_speed = disappear_speed
-        self.previus = pygame.math.Vector2(self.origin_point)
-        self.active = active
+        self.offset:pygame.Vector2 = pygame.math.Vector2(offset)
+        """The offset from the sprite. <get, set>"""
+        self.origin_point:pygame.Vector2 = self.offset+self.sprite.rect.center
+        """The origin point. Will follow the sprite+offset. <get>"""
+        self.color:str|tuple[int,int,int]|pygame.Color = color
+        """The color of the trail. <get, set>"""
+        self.trail_thicness:int = trail_thicness
+        """The thicness of the trail. <get, set>"""
+        self.disappear_speed:float = disappear_speed
+        """How slowly the trail disappear. <get, set>"""
+        self.previus:pygame.Vector2 = pygame.math.Vector2(self.origin_point)
+        """Previous origin point. <get>"""
+        self.active:bool = active
+        """Whether the trail grows or not. <get, set>"""
 
-        self.lines = []
+        self.lines:list[dict] = []
+        """The lines list. <get>"""
 
     def copy(self):
+        """Returns a copy of the trail."""
         new = Trail(self.sprite, self.offset, self.color,
                     self.trail_thicness, self.disappear_speed, self.active)
         new.lines = self.lines
@@ -33,25 +43,25 @@ class Trail():
 
     def kill(self) -> None:
         """
-        Delete itself.
+        Deletes itself.
         """
         del self
 
     def clear_trail(self) -> None:
         """
-        Clear the trail list.
+        Clears the trail list.
         """
         self.lines.clear()
 
     def update_position(self) -> None:
         """
-        Change th origin point to the sprite rect center offsetted.
+        Changes th origin point to the sprite rect center offsetted.
         """
         self.origin_point = self.offset+self.sprite.rect.center
 
     def generate(self) -> None:
         """
-        Add one trail line to the list.
+        Adds one trail line to the list.
         """
         if self.active:
             if self.previus != self.origin_point:
@@ -62,7 +72,7 @@ class Trail():
 
     def draw(self, surface: pygame.Surface, dt: float = 1.0) -> None:
         """
-        Draw the trail lines.
+        Draws the trail lines.
         """
 
         toRemove = []

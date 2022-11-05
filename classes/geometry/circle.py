@@ -1,6 +1,6 @@
 import sys
-sys.path.append("...")
-from _utils import dist
+#sys.path.append("...")
+from ..._utils import dist
 import pygame
 import math
 from pygame.math import Vector2, Vector3
@@ -17,16 +17,20 @@ class Circle():
     A useful class with circle informations and methods, similar to the pygame rect one.
     """
 
-    def __init__(self, center: Tuple[int, int], radius: float, color: Union[str, Tuple[int, int, int]] = "white", line_width: int = 0):
-        self.center = pygame.math.Vector2(center)
-        self.radius = radius
-        self.color = color
-        self.line_width = line_width
+    def __init__(self, center: Tuple[int, int], radius: float, color: Union[str, Tuple[int, int, int],pygame.Color] = "white", line_width: int = 0):
+        self.center:pygame.Vector2 = pygame.math.Vector2(center)
+        """The center of the circle. <get, set>"""
+        self.radius:int = radius
+        """The radius. <get, set>"""
+        self.color:str|tuple[int,int,int]|pygame.Color = color
+        """The color. <get, set>"""
+        self.line_width:int = line_width
+        """The width of the circle outline. <get, set>"""
 
     @staticmethod
     def from_rect(rect: pygame.Rect, color: Union[str, Tuple[int, int, int]] = "white", line_width: int = 0):
         """
-        Return a circle made from a rect. This is a static method, working as a second constructor.
+        Returns a circle made from a rect. This is a static method, working as a second constructor.
         """
         if rect.w != rect.h:
             raise ValueError(
@@ -35,46 +39,46 @@ class Circle():
 
     def to_rect(self) -> pygame.Rect:
         """
-        Return the bounding rect of the circle.
+        Returns the bounding rect of the circle.
         """
         return pygame.Rect(self.center.x-self.radius, self.center.y-self.radius, self.radius*2, self.radius*2)
 
     def set_center(self, pos):
         """
-        Set the center xy attribute.
+        Sets the center xy attribute.
         """
         self.center.xy = (pos[0], pos[1])
 
     def collidemouse(self) -> bool:
         """
-        Check if the mouse is hovering the circle.
+        Checks if the mouse is hovering the circle.
         """
         pos = pygame.mouse.get_pos()
         return self.collidepoint(pos[0], pos[1])
 
     def draw(self, surface: pygame.Surface, *direction_args):
         """
-        Draw the circle.
+        Draws the circle.
         """
         pygame.draw.circle(surface, self.color, self.center.xy,
                            self.radius, self.line_width, *direction_args)
 
     def copy(self):
         """
-        Return the exact copy of a circle.
+        Returns the exact copy of a circle.
         """
         return Circle(self.center, self.radius, self.color, self.line_width)
 
     def move(self, x: int, y: int):
         """
-        Move the circle center.
+        Moves the circle center.
         """
         self.center.x += x
         self.center.y += y
 
     def clamp(self, circle):
         """
-        Move the circle on the center of another one.
+        Moves the circle on the center of another one.
         """
         self.center.xy = circle.xy
 
@@ -92,25 +96,25 @@ class Circle():
 
     def normalize(self):
         """
-        Correct the radius if negative.
+        Corrects the radius if negative.
         """
         self.radius = abs(self.radius)
 
     def contains(self, circle) -> bool:
         """
-        Check if a circle is inside this circle.
+        Checks if a circle is inside this circle.
         """
         return dist(self.center, circle.center) + circle.radius <= self.radius
 
     def collidepoint(self, x: int, y: int) -> bool:
         """
-        Check if a point is colliding this circle.
+        Checks if a point is colliding this circle.
         """
         return dist(self.center, (x, y)) <= self.radius
 
     def collidecircle(self, circle) -> bool:
         """
-        Check if two circles are colliding.
+        Checks if two circles are colliding.
         """
         return dist(self.center, circle.center) < self.radius + circle.radius
 
@@ -157,39 +161,44 @@ class Circle():
                     yield tuple((key, circles[key]))
 
     @property
-    def x(self):
+    def x(self)->int:
+        """The x of the center. <get, set>"""
         return self.center.x
 
     @x.setter
-    def x(self, value):
+    def x(self, value:int):
         self.center.x = value
 
     @property
-    def y(self):
+    def y(self)->int:
+        """The y of the center. <get, set>"""
         return self.center.y
 
     @y.setter
-    def y(self, value):
+    def y(self, value:int):
         self.center.y = value
 
     @property
-    def diameter(self):
+    def diameter(self)->int:
+        """The diameter of the circle. <get, set>"""
         return self.radius*2
 
     @diameter.setter
-    def diameter(self, value):
+    def diameter(self, value:int):
         self.radius = value/2
 
     @property
-    def circumference(self):
+    def circumference(self)->int:
+        """The circumference of the circle. <get, set>"""
         return self.radius * (math.pi*2)
 
     @circumference.setter
-    def circumference(self, value):
+    def circumference(self, value:int):
         self.radius = value / (math.pi*2)
 
     @property
     def area(self):
+        """The area of the circle. <get, set>"""
         return self.radius**2*math.pi
 
     @area.setter

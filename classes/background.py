@@ -1,6 +1,6 @@
 import sys
-sys.path.append("..")
-from graphics.surface import *
+#sys.path.append("..")
+from ..graphics.surface import *
 import pygame
 from typing import Tuple
 
